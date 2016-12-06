@@ -3,6 +3,10 @@ public class Main {
         System.out.println("Grid World");
         GridWorld gridWorld = new GridWorld();
         gridWorld.printGridWorld();
+        while(true){
+            gridWorld.travel();
+        }
+
 
     }
 }
