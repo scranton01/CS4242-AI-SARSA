@@ -22,7 +22,7 @@ public class Grid {
         this.rightWeight = 0;
         this.downWeight = 0;
         this.leftWeight = 0;
-        this.epsilon = 0.2;
+        this.epsilon = 0.3;
     }
 
     public enum Direction {
@@ -34,35 +34,35 @@ public class Grid {
 
     public Direction getDirection() {
         double max = upWeight;
-        Random random = new Random();
-        if(random.nextDouble()>epsilon) {
-            Direction direction = Direction.UP;
-            if (rightWeight > max) {
-                max = rightWeight;
-                direction = Direction.RIGHT;
-            }
-            if (downWeight > max) {
-                max = downWeight;
-                direction = Direction.DOWN;
-            }
-            if (leftWeight > max) {
-                direction = Direction.LEFT;
-            }
-            return direction;
-        }else{
-            int randomDirection = random.nextInt(4);
-            switch (randomDirection){
-                case 0:
-                    return Direction.UP;
-                case 1:
-                    return Direction.RIGHT;
-                case 2:
-                    return Direction.DOWN;
-                case 3:
-                    return Direction.LEFT;
-            }
+//        Random random = new Random();
+//        if(random.nextDouble()>epsilon) {
+        Direction direction = Direction.UP;
+        if (rightWeight > max) {
+            max = rightWeight;
+            direction = Direction.RIGHT;
         }
-        return null;
+        if (downWeight > max) {
+            max = downWeight;
+            direction = Direction.DOWN;
+        }
+        if (leftWeight > max) {
+            direction = Direction.LEFT;
+        }
+        return direction;
+//        }else{
+//            int randomDirection = random.nextInt(4);
+//            switch (randomDirection){
+//                case 0:
+//                    return Direction.UP;
+//                case 1:
+//                    return Direction.RIGHT;
+//                case 2:
+//                    return Direction.DOWN;
+//                case 3:
+//                    return Direction.LEFT;
+//            }
+//        }
+//        return null;
     }
 
     public Double getStateReward() {
@@ -96,6 +96,39 @@ public class Grid {
                 return downWeight;
             case LEFT:
                 return leftWeight;
+        }
+        return null;
+    }
+
+    public Direction epsilonGreedy() {
+        double max = upWeight;
+        Random random = new Random();
+        if (random.nextDouble() > epsilon) {
+            Direction direction = Direction.UP;
+            if (rightWeight > max) {
+                max = rightWeight;
+                direction = Direction.RIGHT;
+            }
+            if (downWeight > max) {
+                max = downWeight;
+                direction = Direction.DOWN;
+            }
+            if (leftWeight > max) {
+                direction = Direction.LEFT;
+            }
+            return direction;
+        } else {
+            int randomDirection = random.nextInt(4);
+            switch (randomDirection) {
+                case 0:
+                    return Direction.UP;
+                case 1:
+                    return Direction.RIGHT;
+                case 2:
+                    return Direction.DOWN;
+                case 3:
+                    return Direction.LEFT;
+            }
         }
         return null;
     }
