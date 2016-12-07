@@ -8,9 +8,9 @@ import java.util.concurrent.TimeUnit;
 public class GridWorld {
     List<List<Grid>> table;
     List<List<Grid>> eTable;
-    double gamma = .1;
+    double gamma = 0.5;
     double learningRate = 0.5;
-    double lambda = .9;
+    double lambda = 0.9;
     JFrame frame;
 
     GridWorld() {
@@ -37,7 +37,6 @@ public class GridWorld {
         this.frame = new JFrame("GridWorld");
         this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.frame.setPreferredSize(new Dimension(1050, 1050));
-        printGridWorld();
     }
 
     private void resetGridWorld() {
@@ -184,6 +183,11 @@ public class GridWorld {
     }
 
     void printGridWorld() {
+//        frame.removeAll();
+//        SwingUtilities.updateComponentTreeUI(frame);
+//        frame.invalidate();
+//        frame.validate();
+//        frame.repaint();
         ClassLoader classLoader = this.getClass().getClassLoader();
         ImageIcon up = new ImageIcon(classLoader.getResource("up.jpg"));
         ImageIcon right = new ImageIcon(classLoader.getResource("right.jpg"));
@@ -230,6 +234,8 @@ public class GridWorld {
         frame.add(grid);
         frame.pack();
         frame.setVisible(true);
+
+
     }
 
     Grid findPerson() {
@@ -242,27 +248,6 @@ public class GridWorld {
             }
         }
         return null;
-    }
-
-    void travel() {
-        Grid person = findPerson();
-        Grid.Direction direction = person.getDirection();
-        person.setState(State.BLANK);
-        switch (direction) {
-            case UP:
-                get(person.getRow() - 1, person.getColumn()).setState(State.PERSON);
-                break;
-            case RIGHT:
-                get(person.getRow(), person.getColumn() + 1).setState(State.PERSON);
-                break;
-            case DOWN:
-                get(person.getRow() + 1, person.getColumn()).setState(State.PERSON);
-                break;
-            case LEFT:
-                get(person.getRow(), person.getColumn() - 1).setState(State.PERSON);
-                break;
-        }
-        printGridWorld();
     }
 
     private void movePerson(Grid.Direction direction) {
@@ -320,7 +305,7 @@ public class GridWorld {
             A:
             while (true) {
                 Grid personPrime = getDestinationGrid(direction);
-                Grid.Direction directionPrime = personPrime.getDirection();
+                Grid.Direction directionPrime = personPrime.epsilonGreedy();
                 Double reward = personPrime.getStateReward();
                 Double QPrimeValue = personPrime.getWeight(directionPrime);
                 Double QValue = person.getWeight(direction);
@@ -332,19 +317,10 @@ public class GridWorld {
                 for (int i = 0; i < 22; i++) {
                     for (int j = 0; j < 22; j++) {
                         Grid iterator = get(i, j);
-
-                        double updateUp = learningRate * delta * getETable(i, j).getUpWeight();
-                        iterator.setUpWeight(iterator.getUpWeight() + updateUp);
-                        double updateRight = learningRate * delta * getETable(i, j).getRightWeight();
-                        iterator.setRightWeight(iterator.getRightWeight() + updateRight);
-                        double updateDown = learningRate * delta * getETable(i, j).getDownWeight();
-                        iterator.setDownWeight(iterator.getDownWeight() + updateDown);
-                        double updateLeft = learningRate * delta * getETable(i, j).getLeftWeight();
-                        iterator.setLeftWeight(iterator.getLeftWeight() + updateLeft);
-//                        iterator.setUpWeight(iterator.getUpWeight() + (learningRate * delta * getETable(i, j).getUpWeight()));
-//                        iterator.setUpWeight(iterator.getRightWeight() + (learningRate * delta * getETable(i, j).getRightWeight()));
-//                        iterator.setUpWeight(iterator.getDownWeight() + (learningRate * delta * getETable(i, j).getDownWeight()));
-//                        iterator.setUpWeight(iterator.getLeftWeight() + (learningRate * delta * getETable(i, j).getLeftWeight()));
+                        iterator.setUpWeight(iterator.getUpWeight() + (learningRate * delta * getETable(i, j).getUpWeight()));
+                        iterator.setRightWeight(iterator.getRightWeight() + (learningRate * delta * getETable(i, j).getRightWeight()));
+                        iterator.setDownWeight(iterator.getDownWeight() + (learningRate * delta * getETable(i, j).getDownWeight()));
+                        iterator.setLeftWeight(iterator.getLeftWeight() + (learningRate * delta * getETable(i, j).getLeftWeight()));
 
                         Grid eTableIterator = getETable(i, j);
                         eTableIterator.setUpWeight(gamma * lambda * eTableIterator.getUpWeight());
@@ -355,19 +331,28 @@ public class GridWorld {
                 }
                 if (personPrime.getState() == State.GOAL || personPrime.getState() == State.PIT) {
                     person.setState(State.BLANK);
+                    if (personPrime.getState() == State.GOAL) {
+                        printGoal();
+                    } else if (personPrime.getState() == State.PIT) {
+                        printPit();
+                    }
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(1000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     break A;
                 }
                 movePerson(direction);
                 person = personPrime;
                 direction = directionPrime;
                 printGridWorld();
-
-//                try {
-//                    TimeUnit.MILLISECONDS.sleep(200);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
                 printETable();
+                try {
+                    TimeUnit.MILLISECONDS.sleep(100);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             resetGridWorld();
         }
@@ -386,6 +371,54 @@ public class GridWorld {
         }
     }
 
+    private void printGoal() {
+        System.out.println("          _____                   _______                   _____                    _____          \n" +
+                "         /\\    \\                 /::\\    \\                 /\\    \\                  /\\    \\         \n" +
+                "        /::\\    \\               /::::\\    \\               /::\\    \\                /::\\____\\        \n" +
+                "       /::::\\    \\             /::::::\\    \\             /::::\\    \\              /:::/    /        \n" +
+                "      /::::::\\    \\           /::::::::\\    \\           /::::::\\    \\            /:::/    /         \n" +
+                "     /:::/\\:::\\    \\         /:::/~~\\:::\\    \\         /:::/\\:::\\    \\          /:::/    /          \n" +
+                "    /:::/  \\:::\\    \\       /:::/    \\:::\\    \\       /:::/__\\:::\\    \\        /:::/    /           \n" +
+                "   /:::/    \\:::\\    \\     /:::/    / \\:::\\    \\     /::::\\   \\:::\\    \\      /:::/    /            \n" +
+                "  /:::/    / \\:::\\    \\   /:::/____/   \\:::\\____\\   /::::::\\   \\:::\\    \\    /:::/    /             \n" +
+                " /:::/    /   \\:::\\ ___\\ |:::|    |     |:::|    | /:::/\\:::\\   \\:::\\    \\  /:::/    /              \n" +
+                "/:::/____/  ___\\:::|    ||:::|____|     |:::|    |/:::/  \\:::\\   \\:::\\____\\/:::/____/               \n" +
+                "\\:::\\    \\ /\\  /:::|____| \\:::\\    \\   /:::/    / \\::/    \\:::\\  /:::/    /\\:::\\    \\               \n" +
+                " \\:::\\    /::\\ \\::/    /   \\:::\\    \\ /:::/    /   \\/____/ \\:::\\/:::/    /  \\:::\\    \\              \n" +
+                "  \\:::\\   \\:::\\ \\/____/     \\:::\\    /:::/    /             \\::::::/    /    \\:::\\    \\             \n" +
+                "   \\:::\\   \\:::\\____\\        \\:::\\__/:::/    /               \\::::/    /      \\:::\\    \\            \n" +
+                "    \\:::\\  /:::/    /         \\::::::::/    /                /:::/    /        \\:::\\    \\           \n" +
+                "     \\:::\\/:::/    /           \\::::::/    /                /:::/    /          \\:::\\    \\          \n" +
+                "      \\::::::/    /             \\::::/    /                /:::/    /            \\:::\\    \\         \n" +
+                "       \\::::/    /               \\::/____/                /:::/    /              \\:::\\____\\        \n" +
+                "        \\::/____/                 ~~                      \\::/    /                \\::/    /        \n" +
+                "                                                           \\/____/                  \\/____/         \n" +
+                "                                                                                                    ");
+    }
 
+    private void printPit() {
+        System.out.println("          _____                    _____                _____          \n" +
+                "         /\\    \\                  /\\    \\              /\\    \\         \n" +
+                "        /::\\    \\                /::\\    \\            /::\\    \\        \n" +
+                "       /::::\\    \\               \\:::\\    \\           \\:::\\    \\       \n" +
+                "      /::::::\\    \\               \\:::\\    \\           \\:::\\    \\      \n" +
+                "     /:::/\\:::\\    \\               \\:::\\    \\           \\:::\\    \\     \n" +
+                "    /:::/__\\:::\\    \\               \\:::\\    \\           \\:::\\    \\    \n" +
+                "   /::::\\   \\:::\\    \\              /::::\\    \\          /::::\\    \\   \n" +
+                "  /::::::\\   \\:::\\    \\    ____    /::::::\\    \\        /::::::\\    \\  \n" +
+                " /:::/\\:::\\   \\:::\\____\\  /\\   \\  /:::/\\:::\\    \\      /:::/\\:::\\    \\ \n" +
+                "/:::/  \\:::\\   \\:::|    |/::\\   \\/:::/  \\:::\\____\\    /:::/  \\:::\\____\\\n" +
+                "\\::/    \\:::\\  /:::|____|\\:::\\  /:::/    \\::/    /   /:::/    \\::/    /\n" +
+                " \\/_____/\\:::\\/:::/    /  \\:::\\/:::/    / \\/____/   /:::/    / \\/____/ \n" +
+                "          \\::::::/    /    \\::::::/    /           /:::/    /          \n" +
+                "           \\::::/    /      \\::::/____/           /:::/    /           \n" +
+                "            \\::/____/        \\:::\\    \\           \\::/    /            \n" +
+                "             ~~               \\:::\\    \\           \\/____/             \n" +
+                "                               \\:::\\    \\                              \n" +
+                "                                \\:::\\____\\                             \n" +
+                "                                 \\::/    /                             \n" +
+                "                                  \\/____/                              \n" +
+                "                                                                       ");
+    }
 }
 
