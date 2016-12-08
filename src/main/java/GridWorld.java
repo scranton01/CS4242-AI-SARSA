@@ -5,13 +5,15 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import static java.awt.SystemColor.window;
+
 public class GridWorld {
-    List<List<Grid>> table;
-    List<List<Grid>> eTable;
-    double gamma = 0.5;
-    double learningRate = 0.5;
-    double lambda = 0.9;
-    JFrame frame;
+    private List<List<Grid>> table;
+    private List<List<Grid>> eTable;
+    private final double gamma = 0.5;
+    private final double learningRate = 0.5;
+    private final double lambda = 0.9;
+    private final JFrame frame;
 
     GridWorld() {
         this.table = new ArrayList<>();
@@ -37,6 +39,62 @@ public class GridWorld {
         this.frame = new JFrame("GridWorld");
         this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.frame.setPreferredSize(new Dimension(1050, 1050));
+        this.frame.setVisible(true);
+        this.frame.setAlwaysOnTop(false);
+    }
+
+    void printGridWorld() {
+        ClassLoader classLoader = this.getClass().getClassLoader();
+        ImageIcon up = new ImageIcon(classLoader.getResource("up.jpg"));
+        ImageIcon right = new ImageIcon(classLoader.getResource("right.jpg"));
+        ImageIcon down = new ImageIcon(classLoader.getResource("down.jpg"));
+        ImageIcon left = new ImageIcon(classLoader.getResource("left.jpg"));
+        ImageIcon pit = new ImageIcon(classLoader.getResource("pit.jpg"));
+        ImageIcon treasure = new ImageIcon(classLoader.getResource("treasure.jpg"));
+        ImageIcon person = new ImageIcon(classLoader.getResource("link.jpg"));
+
+        JPanel grid = new JPanel();
+        grid.setLayout(new GridLayout(22, 22));
+        for (int i = 0; i < 22; i++) {
+            for (int j = 0; j < 22; j++) {
+                State state = get(i, j).getState();
+                switch (state) {
+                    case BLANK:
+                        Grid.Direction direction = get(i, j).getDirection();
+                        switch (direction) {
+                            case UP:
+                                grid.add(new JLabel(up));
+                                break;
+                            case RIGHT:
+                                grid.add(new JLabel(right));
+                                break;
+                            case DOWN:
+                                grid.add(new JLabel(down));
+                                break;
+                            case LEFT:
+                                grid.add(new JLabel(left));
+                                break;
+                        }
+                        break;
+                    case PIT:
+                        grid.add(new JLabel(pit));
+                        break;
+                    case GOAL:
+                        grid.add(new JLabel(treasure));
+                        break;
+                    case PERSON:
+                        grid.add(new JLabel(person));
+                }
+            }
+        }
+        frame.getContentPane().removeAll();
+        frame.getContentPane().invalidate();
+        frame.add(grid);
+        frame.revalidate();
+        frame.pack();
+
+
+
     }
 
     private void resetGridWorld() {
@@ -65,7 +123,7 @@ public class GridWorld {
                         get(i, j).setStateReward(1);
                         break;
                     case PIT:
-                        get(i, j).setStateReward(-1);
+                        get(i, j).setStateReward(-0.001);
                         break;
                     default:
                         get(i, j).setStateReward(0);
@@ -79,10 +137,10 @@ public class GridWorld {
         Random random = new Random();
         for (int i = 0; i < 22; i++) {
             for (int j = 0; j < 22; j++) {
-                get(i, j).setUpWeight(random.nextDouble() / 100);
-                get(i, j).setRightWeight(random.nextDouble() / 100);
-                get(i, j).setDownWeight(random.nextDouble() / 100);
-                get(i, j).setLeftWeight(random.nextDouble() / 100);
+                get(i, j).setUpWeight(random.nextDouble() / 1000);
+                get(i, j).setRightWeight(random.nextDouble() / 1000);
+                get(i, j).setDownWeight(random.nextDouble() / 1000);
+                get(i, j).setLeftWeight(random.nextDouble() / 1000);
             }
         }
     }
@@ -142,6 +200,17 @@ public class GridWorld {
         get(13, 18).setState(State.PIT);
         get(12, 18).setState(State.PIT);
         get(11, 18).setState(State.PIT);
+
+        get(10,8).setState(State.PIT);
+        get(10,9).setState(State.PIT);
+        get(10,10).setState(State.PIT);
+        get(11,8).setState(State.PIT);
+        get(11,9).setState(State.PIT);
+        get(11,10).setState(State.PIT);
+        get(12,8).setState(State.PIT);
+        get(12,9).setState(State.PIT);
+        get(12,10).setState(State.PIT);
+
     }
 
     private void setGoal() {
@@ -182,61 +251,7 @@ public class GridWorld {
         return eTable.get(row).get(column);
     }
 
-    void printGridWorld() {
-//        frame.removeAll();
-//        SwingUtilities.updateComponentTreeUI(frame);
-//        frame.invalidate();
-//        frame.validate();
-//        frame.repaint();
-        ClassLoader classLoader = this.getClass().getClassLoader();
-        ImageIcon up = new ImageIcon(classLoader.getResource("up.jpg"));
-        ImageIcon right = new ImageIcon(classLoader.getResource("right.jpg"));
-        ImageIcon down = new ImageIcon(classLoader.getResource("down.jpg"));
-        ImageIcon left = new ImageIcon(classLoader.getResource("left.jpg"));
-        ImageIcon pit = new ImageIcon(classLoader.getResource("pit.jpg"));
-        ImageIcon treasure = new ImageIcon(classLoader.getResource("treasure.jpg"));
-        ImageIcon person = new ImageIcon(classLoader.getResource("link.jpg"));
 
-        JPanel grid = new JPanel();
-        grid.setLayout(new GridLayout(22, 22));
-        for (int i = 0; i < 22; i++) {
-            for (int j = 0; j < 22; j++) {
-                State state = get(i, j).getState();
-                switch (state) {
-                    case BLANK:
-                        Grid.Direction direction = get(i, j).getDirection();
-                        switch (direction) {
-                            case UP:
-                                grid.add(new JLabel(up));
-                                break;
-                            case RIGHT:
-                                grid.add(new JLabel(right));
-                                break;
-                            case DOWN:
-                                grid.add(new JLabel(down));
-                                break;
-                            case LEFT:
-                                grid.add(new JLabel(left));
-                                break;
-                        }
-                        break;
-                    case PIT:
-                        grid.add(new JLabel(pit));
-                        break;
-                    case GOAL:
-                        grid.add(new JLabel(treasure));
-                        break;
-                    case PERSON:
-                        grid.add(new JLabel(person));
-                }
-            }
-        }
-        frame.add(grid);
-        frame.pack();
-        frame.setVisible(true);
-
-
-    }
 
     Grid findPerson() {
         int[] coordinate = new int[2];
@@ -288,7 +303,6 @@ public class GridWorld {
     void eligibilityTraceLearning() {
         int iteration = 0;
         while (true) {
-            System.out.println("episode: " + iteration++);
             boolean isTerminal = false;
             eTable = new ArrayList<>();
             //initializing e table
@@ -330,12 +344,16 @@ public class GridWorld {
                     }
                 }
                 if (personPrime.getState() == State.GOAL || personPrime.getState() == State.PIT) {
+
                     person.setState(State.BLANK);
                     if (personPrime.getState() == State.GOAL) {
+                        Grid.epsilonDecay();
                         printGoal();
                     } else if (personPrime.getState() == State.PIT) {
                         printPit();
                     }
+                    System.out.println("epsilon: " + Grid.epsilon);
+                    System.out.println("episode: " + iteration++);
                     try {
                         TimeUnit.MILLISECONDS.sleep(1000);
                     } catch (Exception e) {
@@ -349,7 +367,7 @@ public class GridWorld {
                 printGridWorld();
                 printETable();
                 try {
-                    TimeUnit.MILLISECONDS.sleep(100);
+                    TimeUnit.MILLISECONDS.sleep(50);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
