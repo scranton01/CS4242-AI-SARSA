@@ -13,7 +13,7 @@ public class Grid {
     double leftWeight;
     State state;
     double stateReward;
-    double epsilon;
+    static double epsilon =0.2;
 
     public Grid(int r, int c) {
         this.row = r;
@@ -22,7 +22,6 @@ public class Grid {
         this.rightWeight = 0;
         this.downWeight = 0;
         this.leftWeight = 0;
-        this.epsilon = 0.3;
     }
 
     public enum Direction {
@@ -34,8 +33,6 @@ public class Grid {
 
     public Direction getDirection() {
         double max = upWeight;
-//        Random random = new Random();
-//        if(random.nextDouble()>epsilon) {
         Direction direction = Direction.UP;
         if (rightWeight > max) {
             max = rightWeight;
@@ -49,20 +46,6 @@ public class Grid {
             direction = Direction.LEFT;
         }
         return direction;
-//        }else{
-//            int randomDirection = random.nextInt(4);
-//            switch (randomDirection){
-//                case 0:
-//                    return Direction.UP;
-//                case 1:
-//                    return Direction.RIGHT;
-//                case 2:
-//                    return Direction.DOWN;
-//                case 3:
-//                    return Direction.LEFT;
-//            }
-//        }
-//        return null;
     }
 
     public Double getStateReward() {
@@ -131,5 +114,11 @@ public class Grid {
             }
         }
         return null;
+    }
+
+    public static void epsilonDecay() {
+        if (epsilon > 0.05) {
+            epsilon = epsilon -0.001;
+        }
     }
 }
